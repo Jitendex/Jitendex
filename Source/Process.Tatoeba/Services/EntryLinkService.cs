@@ -116,7 +116,7 @@ internal partial class EntryLinkService
 
         if (entryIds.IsEmpty && token.IsPriority)
         {
-            LogNoMatches(token.ExampleId, token.SegmentationOrder, token.Order);
+            LogNoMatches(token.ExampleId, token.SegmentationOrder, token.Order, token.Headword);
         }
 
         foreach (var entryId in entryIds)
@@ -187,8 +187,8 @@ internal partial class EntryLinkService
     }
 
     [LoggerMessage(LogLevel.Warning,
-    "Token ID {ExampleId}-{SegmentationOrder}-{TokenOrder} could not be linked to any entries")]
-    partial void LogNoMatches(int exampleId, int segmentationOrder, int tokenOrder);
+    "Token ID {ExampleId}-{SegmentationOrder}-{TokenOrder} {Headword} could not be linked to any entries")]
+    partial void LogNoMatches(int exampleId, int segmentationOrder, int tokenOrder, string headword);
 
     [LoggerMessage(LogLevel.Warning,
     "Token ID {ExampleId}-{SegmentationOrder}-{TokenOrder} contains an erroneous reference to entry {EntryId}")]
