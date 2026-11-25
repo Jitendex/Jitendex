@@ -41,6 +41,7 @@ public sealed class Token
     #region Fork Properties
 
     public ICollection<EntryLink> EntryLinks { get; init; } = [];
+    public List<TokenHighlight> Highlights { get; init; } = [];
 
     #endregion
 }

@@ -32,3 +32,11 @@ internal sealed record ExampleFuriganaRow
     string BaseText,
     string? RubyText
 );
+
+internal sealed record TokenHighlightRow
+(
+    int ExampleId,
+    int SegmentationOrder,
+    int TokenOrder,
+    int StartIndex
+);

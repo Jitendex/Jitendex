@@ -40,10 +40,12 @@ internal static class ServiceProvider
         .AddTransient<EntryLinkService>()
         .AddTransient<JMdictDataService>()
         .AddTransient<ExampleFuriganaService>()
+        .AddTransient<TokenHighlightService>()
 
         // Tables
         .AddTransient<EntryLinkTable>()
         .AddTransient<ExampleFuriganaTable>()
+        .AddTransient<TokenHighlightTable>()
 
         // Logging
         .AddLogging(static builder =>

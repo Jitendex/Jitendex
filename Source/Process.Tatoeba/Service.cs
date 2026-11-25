@@ -26,7 +26,8 @@ internal sealed class Service
     TatoebaForkContext forkContext,
     DatabaseCopyService databaseCopier,
     EntryLinkService entryLinkService,
-    ExampleFuriganaService furiganaService
+    ExampleFuriganaService furiganaService,
+    TokenHighlightService tokenHighlightService
 )
 {
     public void Run()
@@ -43,6 +44,9 @@ internal sealed class Service
 
         logger.LogInformation("Adding example sentence furigana.");
         furiganaService.Write();
+
+        logger.LogInformation("Adding example sentence keyword indices.");
+        tokenHighlightService.Write();
 
         forkTransaction.Commit();
 
