@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Jitendex.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Frozen;
 using Jitendex.Data.Home;
 using Jitendex.Data.Tatoeba;
 using Jitendex.Process.Tatoeba.Models;
@@ -32,6 +33,9 @@ internal partial class TokenHighlightService
 {
     public void Write()
     {
+        var cache = LoadDisambiguationCache();
+        var usedCacheKeys = new HashSet<(int, int, int)>(cache.Count);
+
         var priorityTokens = tatoebaContext.Tokens
             .Where(static t => t.IsPriority)
             .Select(static t => new
@@ -68,7 +72,23 @@ internal partial class TokenHighlightService
 
             if (count > 1)
             {
-                // TODO: Fetch and validate correct indices from cache.
+                var cacheKey = (token.ExampleId, token.SegmentationOrder, token.Order);
+                if (!cache.TryGetValue(cacheKey, out var cachedIndices))
+                {
+                    LogMissingCacheExample(token.ExampleId, token.SegmentationOrder, token.Order, text);
+                }
+                else if (!IsSubset(cachedIndices, indices[..count]))
+                {
+                    LogInvalidCache(token.ExampleId, token.SegmentationOrder, token.Order, text);
+                    usedCacheKeys.Add(cacheKey);
+                }
+                else
+                {
+                    usedCacheKeys.Add(cacheKey);
+                    count = 0;
+                    foreach (var cachedIndex in cachedIndices)
+                        indices[count++] = cachedIndex;
+                }
             }
 
             for (int i = 0; i < count; i++)
@@ -83,10 +103,63 @@ internal partial class TokenHighlightService
             }
         }
 
+        foreach (var cacheKey in cache.Keys)
+        {
+            if (!usedCacheKeys.Contains(cacheKey))
+                LogUnusedCacheKey(cacheKey.Item1, cacheKey.Item2, cacheKey.Item3);
+        }
+
         table.InsertItems(tatoebaContext, rows);
+    }
+
+    private FrozenDictionary<(int, int, int), FrozenSet<int>> LoadDisambiguationCache()
+        => homeContext.Tokens
+            .Select(static t => new
+            {
+                Key = new { t.ExampleId, t.SegmentationOrder, t.Order },
+                Values = t.Highlights
+                    .OrderBy(static t => t.StartIndex)
+                    .Select(static t => t.StartIndex)
+                    .ToFrozenSet()
+            })
+            .ToFrozenDictionary
+            (
+                static x => (x.Key.ExampleId, x.Key.SegmentationOrder, x.Key.Order),
+                static x => x.Values
+            );
+
+    private static bool IsSubset(FrozenSet<int> smallSet, ReadOnlySpan<int> bigSet)
+    {
+        foreach (var x in smallSet)
+        {
+            bool found = false;
+            foreach (var y in bigSet)
+            {
+                if (x == y)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                return false;
+        }
+        return true;
     }
 
     [LoggerMessage(LogLevel.Warning,
     "Example ID {ExampleId} does not contain expected text `{Text}`.")]
     partial void LogMissingSentenceText(int exampleId, string text);
+
+    [LoggerMessage(LogLevel.Warning,
+    "Example ID {ExampleId}, segmentation order {SegOrder}, token order {TokenOrder} ({Text}) not found in disambiguation cache.")]
+    partial void LogMissingCacheExample(int exampleId, int segOrder, int tokenOrder, string text);
+
+    [LoggerMessage(LogLevel.Warning,
+    "Invalid cached indices for example ID {ExampleId}, segmentation order {SegOrder}, token order {TokenOrder} ({Text}).")]
+    partial void LogInvalidCache(int exampleId, int segOrder, int tokenOrder, string text);
+
+    [LoggerMessage(LogLevel.Warning,
+    "Unused cache key exists for example ID {ExampleId}, segmentation order {SegOrder}, token order {TokenOrder}.")]
+    partial void LogUnusedCacheKey(int exampleId, int segOrder, int tokenOrder);
 }
