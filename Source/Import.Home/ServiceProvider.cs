@@ -98,7 +98,8 @@ internal static class ServiceProvider
             .AddTransient<ExampleTable>()
             .AddTransient<ExampleFuriganaTable>()
             // Services
-            .AddTransient<ExampleFuriganaService>();
+            .AddTransient<ExampleFuriganaService>()
+            .AddTransient<TokenHighlightService>();
 
     private static IServiceCollection AddKanwaServices(this IServiceCollection collection)
         => collection

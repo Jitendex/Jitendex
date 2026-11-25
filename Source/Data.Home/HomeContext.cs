@@ -61,5 +61,7 @@ public class HomeContext() : SqliteContext(DatabaseFile.Home)
     #region Tatoeba
     public DbSet<Example> Examples { get; set; } = null!;
     public DbSet<ExampleFurigana> ExampleFurigana { get; set; } = null!;
+    public DbSet<Token> Tokens { get; set; } = null!;
+    public DbSet<TokenHighlight> TokenHighlights { get; set; } = null!;
     #endregion
 }

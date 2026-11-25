@@ -37,6 +37,7 @@ internal sealed class Service
     JMdictPatchRecallService jmdictPatchRecallService,
     TrademarkService trademarkService,
     ExampleFuriganaService exampleFuriganaService,
+    TokenHighlightService tokenHighlightService,
     CharacterService characterService,
     VariantService variantService,
     CompoundService compoundService
@@ -80,6 +81,7 @@ internal sealed class Service
 
         // 04 Tatoeba
         exampleFuriganaService,
+        tokenHighlightService,
 
         // 05 Kanwa
         characterService,
