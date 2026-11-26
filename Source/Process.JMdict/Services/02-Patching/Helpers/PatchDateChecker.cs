@@ -40,14 +40,13 @@ internal sealed partial class PatchDateChecker
 
         var sequenceDate = dates.GetLatest();
 
-        if (sequenceDate.Equals(patch.Date))
-        {
-            return null;
-        }
+        if (!sequenceDate.Equals(patch.Date))
         {
             LogOutdatedPatch(patch.Id, patch.SequenceId, patch.Date, sequenceDate);
             return sequenceDate;
         }
+
+        return null;
     }
 
     private static readonly Func<JMdictContext, int, SequenceDates?> QueryLatestRevisionDate
